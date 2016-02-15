@@ -73,7 +73,7 @@ def string_to_dict(string):
 
     kwargs = {}
     if string:
-        string = str(string)
+        string = unicode(string)
         if ',' not in string:
             # ensure at least one ','
             string += ','
@@ -94,7 +94,7 @@ def string_to_list(string):
 
     args = []
     if string:
-        string = str(string)
+        string = unicode(string)
         if ',' not in string:
             # ensure at least one ','
             string += ','
