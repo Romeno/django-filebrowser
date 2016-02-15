@@ -3,6 +3,7 @@
 # PYTHON IMPORTS
 import os
 import re
+import platform
 
 # DJANGO IMPORTS
 from django import forms
@@ -75,9 +76,17 @@ class ChangeForm(forms.Form):
             # only letters, numbers, underscores, spaces and hyphens are allowed.
             if not ALNUM_NAME_RE.search(self.cleaned_data['name']):
                 raise forms.ValidationError(_(u'Only letters, numbers, underscores, spaces and hyphens are allowed.'))
+
             #  folder/file must not already exist.
-            if self.site.storage.isdir(os.path.join(self.path, convert_filename(self.cleaned_data['name']))) and os.path.join(self.path, convert_filename(self.cleaned_data['name'])) != self.fileobject.path:
-                raise forms.ValidationError(_(u'The Folder already exists.'))
-            elif self.site.storage.isfile(os.path.join(self.path, convert_filename(self.cleaned_data['name']))) and os.path.join(self.path, convert_filename(self.cleaned_data['name'])) != self.fileobject.path:
-                raise forms.ValidationError(_(u'The File already exists.'))
+            old_path = self.fileobject.path
+            if platform.system() == 'Windows':
+                old_path = old_path.replace('/', '\\')
+            new_path = os.path.join(self.path, convert_filename(self.cleaned_data['name']))
+
+            if self.site.storage.exists(new_path):
+                if new_path != old_path:
+                    item_name = 'Folder' if self.site.storage.isdir(new_path) else 'File'
+                    raise forms.ValidationError(_(u'The %s already exists.' % item_name))
+
         return convert_filename(self.cleaned_data['name'])
+
